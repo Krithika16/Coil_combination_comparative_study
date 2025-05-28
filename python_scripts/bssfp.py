@@ -2,6 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 np.random.seed(19960904)
 
+"""
+Credits: Nicholas McKibben wrote the below code and uploaded it to https://github.com/mckib2/ssfp/tree/main/ssfp.
+"""
+
 def bssfp(T1, T2, TR, alpha, field_map=0, phase_cyc=0, M0=1, delta_cs=0,
         phi_rf=0, phi_edd=0, phi_drift=0, target_pc_axis=0):
     r'''This function outputs the bSSFP transverse signal at time TE after excitation.
