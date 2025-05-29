@@ -1,7 +1,7 @@
 import numpy as np
 #import mapvbvd
 import os
-from python_scripts import espirit
+import espirit
 import matplotlib.pyplot as plt
 
 

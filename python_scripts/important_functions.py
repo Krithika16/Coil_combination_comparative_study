@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import math
 from skimage.measure import EllipseModel
 from sklearn.preprocessing import minmax_scale
-from sklearn.preprocessing import MinMaxScaler
 
 
 
@@ -381,10 +380,10 @@ def segment_image_and_getROI_with_startend_idx(bssfp_im, startRow, endRow, start
 
 
 def get_SNR_from_pc_bssfp_img_method1(pc_bssfp, row_indices_bg, col_indices_bg, row_indices_c, col_indices_c,
-                                     coil_num, pc_num, show_text = True):
+                                     coil_num, show_text = True):
 
     #Step 1: get the rayleigh noise standard deviation from the noise scan magnitude image 
-    std_dev_rayleigh = np.std(np.abs(pc_bssfp[row_indices_bg, col_indices_bg, coil_num, pc_num]))
+    std_dev_rayleigh = np.std(np.abs(pc_bssfp[row_indices_bg, col_indices_bg, coil_num, :]))
 
     #Step 2: convert rayleigh std dev to gaussian std dev
     std_dev_gaussian = convert_rayleighStdDev_to_gaussianStdDev(std_dev_rayleigh)
@@ -440,3 +439,83 @@ def RMSE_simulated_phantom(noisy_phantom, coil_combined_data):
         
 
     return RMSE, phase_0th_coil, phase_coil_combined
+
+def bias_variance_invivo(pre_coil_combined_data, coil_combined_data, row_indices_c, col_indices_c):
+    """
+    This function calculates the bias and variance of the difference between the phase of the 0th 
+    coil data and the phase of the coil-combined data within the region [90:140, 200:240].
+
+    Arguments:
+    pre_coil_combined_data: (nr, nc, coil, pc)  - complex array
+    coil_combined_data: (nr, nc, pc) - complex array
+    row_indices_c: list
+    col_indices_c: list
+
+    Returns:
+    bias    : float
+    variance: float
+    """
+
+    #Make empty arrays to store the phase data
+    phase_0th_coil = []
+    phase_coil_combined = []
+
+    #Get the phase of the 0th coil and coil combined data and do phase unwrapping on the phase data
+    angle_0th_coil = np.angle(pre_coil_combined_data[row_indices_c, col_indices_c, 7,:])
+    angle_coil_combined = np.angle(coil_combined_data[row_indices_c, col_indices_c,:])
+
+    for r in range(len(row_indices_c)):
+        phase_0th_coil.append(phaseUnwrapping(angle_0th_coil[r, :])) #single coil phase unwrapping
+        phase_coil_combined.append(phaseUnwrapping(angle_coil_combined[r, :])) #coil combined phase unwrapping
+
+    phase_0th_coil = np.array(phase_0th_coil)
+    phase_coil_combined = np.array(phase_coil_combined)
+     
+    #Calculate the RMSE
+    phase_0th_coil_zeroline = np.transpose(np.subtract(np.transpose(phase_0th_coil), phase_0th_coil[:,0]))
+    phase_coil_combined_zeroline = np.transpose(np.subtract(np.transpose(phase_coil_combined), phase_coil_combined[:,0]))
+    bias = np.mean(np.abs(phase_0th_coil_zeroline - phase_coil_combined_zeroline))
+    variance = np.var(np.abs(phase_0th_coil_zeroline - phase_coil_combined_zeroline))
+    
+    return bias, variance
+
+def bias_variance_simulated_phantom(noisy_phantom, coil_combined_data):
+    """
+    This function calculates the bias and variance of the difference between the phase of the 0th 
+    coil data and the phase of the coil-combined data within the region [90:140, 200:240].
+
+    Arguments:
+    noisy_phantom: (nr, nc, coil, pc)  - complex array
+    coil_combined_data: (nr, nc, pc) - complex array
+
+    Returns:
+    bias    : float
+    variance: float
+    """
+    rows = np.arange(90, 140, 1)
+    cols = np.arange(200,240,1)
+
+    #Make empty arrays to store the phase data
+    phase_0th_coil = []
+    phase_coil_combined = []
+
+    #Get the phase of the 0th coil and coil combined data and do phase unwrapping on the phase data
+    angle_0th_coil = np.angle(noisy_phantom[90:140, 200:240,0,:])
+    angle_coil_combined = np.angle(coil_combined_data[90:140, 200:240,:])
+
+    for r in range(len(rows)):
+        for c in range(len(cols)):
+            phase_0th_coil.append(phaseUnwrapping(angle_0th_coil[r, c, :])) #single coil phase unwrapping
+            phase_coil_combined.append(phaseUnwrapping(angle_coil_combined[r, c, :])) #coil combined phase unwrapping
+
+    phase_0th_coil = np.array(phase_0th_coil)
+    phase_coil_combined = np.array(phase_coil_combined)
+     
+    #Calculate the bias and variance
+    phase_0th_coil_zeroline = np.transpose(np.subtract(np.transpose(phase_0th_coil), phase_0th_coil[:,0]))
+    phase_coil_combined_zeroline = np.transpose(np.subtract(np.transpose(phase_coil_combined), phase_coil_combined[:,0]))
+    bias = np.mean(np.abs(phase_0th_coil_zeroline - phase_coil_combined_zeroline))
+    variance = np.var(np.abs(phase_0th_coil_zeroline - phase_coil_combined_zeroline))
+        
+
+    return bias, variance, phase_0th_coil, phase_coil_combined
