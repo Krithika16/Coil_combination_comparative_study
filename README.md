@@ -8,3 +8,5 @@ GitHub repository accompanying the paper "Comparison of coil combination techniq
 5. Intrinsic Multichannel Phase Alignment (IMPA): Xiang Q-S, Hoff M (2019). Intrinsic Multichannel Phase Alignment (IMPA) for bSSFP Imaging. ISMRM, (pp. 1-2).  
 
 The simulations were used for the SNR sensitivity analysis part of the paper, where the techniques were tested across a range of different SNR levels (10-100 in intervals of 10) in a phantom. A noiseless 12 pc-bSSFP phantom was first simulated and isotropic Gaussian noise was added to simulate a 100 realizations for each SNR level. The python notebook "Simulating_phantom_coil_data.ipynb" simulates the phantoms. "SNR_Sensitivity_Analysis_phantom.py" does the SNR sensitivity analysis on the phantom for ESPIRiT, SRCC, FRCC, and AR. "IMPA_coil_combination_phantom.ipynb" does the SNR sensitivity analysis for IMPA (had to be done separately as the IMPA function is MATLAB code). 
+
+Here is the link to download the simulated phantom data used for the SNR Sensitivity analysis: https://imperialcollegelondon.box.com/s/gfg600j9ajppfjtykze830ny7zi41nvx
